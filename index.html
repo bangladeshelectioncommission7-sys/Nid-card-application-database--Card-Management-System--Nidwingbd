@@ -1,0 +1,315 @@
+<!doctype html>
+
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bangladesh NID PDF Portal - Demo</title>
+  <style>
+    :root{--green:#2e7d32;--light:#f3f6f4;--accent:#143d2b}
+    body{font-family: Arial, Helvetica, sans-serif;background:#eef4f1;margin:0;color:#222}
+    .header{background:linear-gradient(#2f6b3c,#3a8a58);color:#fff;padding:18px 20px;display:flex;gap:16px;align-items:center}
+    .logo{width:64px;height:64px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--accent)}
+    .title{font-size:18px}
+    .container{max-width:980px;margin:22px auto;padding:18px;background:white;border-radius:8px;box-shadow:0 6px 18px rgba(50,50,50,0.08)}.card{padding:14px;border:1px solid #e6efea;border-radius:6px;margin-bottom:12px}
+label{display:block;margin-bottom:6px;font-weight:600}
+input[type=text], input[type=password], input[type=file]{width:100%;padding:10px;border-radius:4px;border:1px solid #cddfd0}
+button{background:var(--green);color:#fff;padding:10px 12px;border-radius:6px;border:none;cursor:pointer}
+.row{display:flex;gap:12px}
+.col{flex:1}
+.small{font-size:13px;color:#666}
+
+#dashboard{display:none}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.badge{background:#e8f6ea;color:var(--accent);padding:6px 10px;border-radius:20px;font-weight:700}
+
+.list{max-height:160px;overflow:auto;border:1px dashed #dbeedf;padding:8px;border-radius:6px}
+.list-item{padding:6px;border-bottom:1px solid #f1f6f4}
+.viewer{height:640px;border:1px solid #dbeedf;border-radius:6px;overflow:hidden}
+
+.hint{font-size:13px;color:#8a8a8a}
+
+footer{margin-top:10px;font-size:12px;color:#777;text-align:center}
+
+@media (max-width:720px){.row{flex-direction:column}}
+
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">EC</div>
+    <div>
+      <div class="title">Bangladesh Election Commission</div>
+      <div class="small">National Identity Registration Wing (Demo)</div>
+    </div>
+  </div>  <div class="container" id="loginCard">
+    <div class="card">
+      <h3>লগইন</h3>
+      <div class="small">একটি লোকাল-ডেমো লগইন — ব্যবহার করুন: <strong>admin</strong> / <strong>1234</strong></div>
+      <div style="margin-top:12px">
+        <label>ইউজার আইডি</label>
+        <input id="userid" type="text" value="" placeholder="ইউজার আইডি লিখুন" />
+      </div>
+      <div style="margin-top:8px">
+        <label>পাসওয়ার্ড</label>
+        <input id="password" type="password" value="" placeholder="পাসওয়ার্ড" />
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button id="loginBtn">লগইন</button>
+        <button id="demoBtn" style="background:#1976d2">ডেমো ইউজার ভর্তি</button>
+      </div>
+    </div><div class="card">
+  <h4>পিডিএফ আপলোড করে একটি NID অ্যাসাইন করুন</h4>
+  <div class="small">আপলোড করা পিডিএফ ব্রাউজারের লোকাল-স্টোরেজ (IndexedDB) এ সংরক্ষিত হবে এবং NID দিয়ে খোঁজা যাবে।</div>
+
+  <div style="margin-top:10px" class="row">
+    <div class="col">
+      <label>নির্বাচিত পিডিএফ ফাইল</label>
+      <input id="pdfFile" type="file" accept="application/pdf" />
+    </div>
+    <div style="width:180px">
+      <label>NID (Association)</label>
+      <input id="assocNid" type="text" placeholder="e.g. 5076479723" />
+    </div>
+  </div>
+  <div style="margin-top:10px">
+    <button id="uploadBtn">ফাইল আপলোড ও সংরক্ষণ</button>
+    <span id="uploadMsg" class="hint" style="margin-left:12px"></span>
+  </div>
+
+  <hr style="margin:12px 0" />
+  <div class="small">সংরক্ষিত রেকর্ড</div>
+  <div class="list" id="recordList"></div>
+</div>
+
+  </div>  <div class="container" id="dashboard">
+    <div class="topbar">
+      <div>
+        <strong>ড্যাশবোর্ড</strong>
+        <div class="small">সার্চ করে NID এর পিডিএফ দেখুন</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="badge" id="loggedUser">admin</div>
+        <button id="logoutBtn" style="background:#c62828">লগআউট</button>
+      </div>
+    </div><div class="card">
+  <div class="row">
+    <div class="col">
+      <label>NID দিয়ে সার্চ</label>
+      <input id="searchNid" type="text" placeholder="NID নম্বর লিখুন" />
+    </div>
+    <div style="width:160px;display:flex;align-items:flex-end">
+      <button id="searchBtn">সার্চ</button>
+    </div>
+  </div>
+  <div style="margin-top:10px" class="small">নিচে যদি রেকর্ড পাওয়া যায়, সেটি পিডিএফ ভিউ হিসেবে প্রদর্শিত হবে।</div>
+</div>
+
+<div class="card viewer" id="pdfContainer">
+  <div id="viewerInner" style="height:100%;display:flex;flex-direction:column">
+    <div id="viewerHeader" style="padding:8px;border-bottom:1px solid #eef6f3;display:flex;justify-content:space-between;align-items:center">
+      <div class="small" id="viewerInfo">কোনো রেজাল্ট পাওয়া যায়নি</div>
+      <div style="display:flex;gap:8px">
+        <button id="downloadBtn" style="display:none">ডাউনলোড</button>
+        <button id="openNewBtn" style="display:none">নতুন ট্যাবে খুলো</button>
+      </div>
+    </div>
+    <div id="viewerFrame" style="flex:1;min-height:300px;">
+      <!-- PDF will be injected here as iframe -->
+    </div>
+  </div>
+</div>
+
+  </div>  <footer class="container">
+    <div class="small">This is a local demo. Files are stored locally (IndexedDB). Not for production use.</div>
+  </footer><script>
+// Simple IndexedDB utility to store PDF blobs keyed by NID
+const DB_NAME = 'nid_pdf_db';
+const STORE = 'pdfs';
+let db = null;
+
+function openDb(){
+  return new Promise((res,rej)=>{
+    if(db) return res(db);
+    const rq = indexedDB.open(DB_NAME,1);
+    rq.onupgradeneeded = e => {
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE);
+    };
+    rq.onsuccess = e => { db = e.target.result; res(db); };
+    rq.onerror = e => rej(e);
+  });
+}
+
+function putBlob(key, blob){
+  return openDb().then(d=>{
+    return new Promise((res,rej)=>{
+      const tx = d.transaction(STORE,'readwrite');
+      const st = tx.objectStore(STORE);
+      const rq = st.put(blob, key);
+      rq.onsuccess = ()=>res(true);
+      rq.onerror = e=>rej(e);
+    });
+  });
+}
+function getBlob(key){
+  return openDb().then(d=>{
+    return new Promise((res,rej)=>{
+      const tx = d.transaction(STORE,'readonly');
+      const st = tx.objectStore(STORE);
+      const rq = st.get(key);
+      rq.onsuccess = e=>res(e.target.result);
+      rq.onerror = e=>rej(e);
+    });
+  });
+}
+function deleteKey(key){
+  return openDb().then(d=>{
+    return new Promise((res,rej)=>{
+      const tx = d.transaction(STORE,'readwrite');
+      const st = tx.objectStore(STORE);
+      const rq = st.delete(key);
+      rq.onsuccess = ()=>res(true);
+      rq.onerror = e=>rej(e);
+    });
+  });
+}
+function listKeys(){
+  return openDb().then(d=>{
+    return new Promise((res,rej)=>{
+      const tx = d.transaction(STORE,'readonly');
+      const st = tx.objectStore(STORE);
+      const keys = [];
+      const rq = st.openCursor();
+      rq.onsuccess = e=>{
+        const cur = e.target.result;
+        if(cur){ keys.push(cur.key); cur.continue(); }
+        else res(keys);
+      };
+      rq.onerror = e=>rej(e);
+    });
+  });
+}
+
+// UI logic
+const loginCard = document.getElementById('loginCard');
+const dashboard = document.getElementById('dashboard');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const demoBtn = document.getElementById('demoBtn');
+const userid = document.getElementById('userid');
+const password = document.getElementById('password');
+
+const pdfFile = document.getElementById('pdfFile');
+const assocNid = document.getElementById('assocNid');
+const uploadBtn = document.getElementById('uploadBtn');
+const uploadMsg = document.getElementById('uploadMsg');
+const recordList = document.getElementById('recordList');
+
+const searchNid = document.getElementById('searchNid');
+const searchBtn = document.getElementById('searchBtn');
+const viewerInfo = document.getElementById('viewerInfo');
+const viewerFrame = document.getElementById('viewerFrame');
+const downloadBtn = document.getElementById('downloadBtn');
+const openNewBtn = document.getElementById('openNewBtn');
+const loggedUser = document.getElementById('loggedUser');
+
+const AUTH_USER = 'admin';
+const AUTH_PASS = '1234';
+
+function setLoggedIn(user){
+  loginCard.style.display = 'none';
+  dashboard.style.display = 'block';
+  loggedUser.textContent = user;
+}
+function setLoggedOut(){
+  loginCard.style.display = 'block';
+  dashboard.style.display = 'none';
+}
+
+// Demo fill
+demoBtn.addEventListener('click', ()=>{ userid.value = AUTH_USER; password.value = AUTH_PASS; });
+
+loginBtn.addEventListener('click', ()=>{
+  const u = userid.value.trim();
+  const p = password.value.trim();
+  if(u===AUTH_USER && p===AUTH_PASS){
+    setLoggedIn(u);
+    refreshList();
+  } else alert('Credential মিলেনি — demo: admin / 1234');
+});
+logoutBtn.addEventListener('click', ()=>{ setLoggedOut(); });
+
+uploadBtn.addEventListener('click', async ()=>{
+  uploadMsg.textContent = '';
+  const file = pdfFile.files[0];
+  const nid = assocNid.value.trim();
+  if(!file || !nid){ uploadMsg.textContent = 'ফাইল ও NID প্রয়োজন'; return; }
+  if(file.type !== 'application/pdf'){ uploadMsg.textContent = 'সিলেক্ট করা ফাইল পিডিএফ হতে হবে'; return; }
+  try{
+    await putBlob(nid, file);
+    uploadMsg.textContent = 'সফলভাবে আপলোড হয়েছে';
+    assocNid.value = '';
+    pdfFile.value = '';
+    refreshList();
+  }catch(e){ console.error(e); uploadMsg.textContent = 'সংরক্ষণে ত্রুটি'; }
+});
+
+async function refreshList(){
+  recordList.innerHTML = '';
+  const keys = await listKeys();
+  if(keys.length===0){ recordList.innerHTML = '<div class="small">কোনো রেকর্ড পাওয়া যায়নি</div>'; return; }
+  keys.forEach(k=>{
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><strong>${k}</strong><div class="small">NID</div></div><div style="display:flex;gap:8px"><button data-nid="${k}" class="viewRec">দেখুন</button><button data-nid="${k}" class="delRec" style="background:#c62828">মুছুন</button></div></div>`;
+    recordList.appendChild(div);
+  });
+  // attach handlers
+  document.querySelectorAll('.viewRec').forEach(b=>b.addEventListener('click', ()=>showByNid(b.dataset.nid)));
+  document.querySelectorAll('.delRec').forEach(b=>b.addEventListener('click', async ()=>{ if(confirm('মোছবেন?')){ await deleteKey(b.dataset.nid); refreshList(); } }));
+}
+
+searchBtn.addEventListener('click', ()=>{ const nid = searchNid.value.trim(); if(!nid){ alert('NID লিখুন'); return; } showByNid(nid); });
+
+let currentObjectUrl = null;
+async function showByNid(nid){
+  viewerInfo.textContent = 'লোড হচ্ছে...';
+  clearViewer();
+  try{
+    const blob = await getBlob(nid);
+    if(!blob){ viewerInfo.textContent = 'রেকর্ড পাওয়া যায়নি'; return; }
+    const url = URL.createObjectURL(blob);
+    currentObjectUrl = url;
+    viewerInfo.innerHTML = `Showing <strong>${nid}</strong>`;
+    downloadBtn.style.display = 'inline-block';
+    openNewBtn.style.display = 'inline-block';
+    downloadBtn.onclick = ()=>{ const a = document.createElement('a'); a.href = url; a.download = `${nid}.pdf`; a.click(); };
+    openNewBtn.onclick = ()=>{ window.open(url, '_blank'); };
+
+    // embed PDF
+    viewerFrame.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.src = url;
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.frameBorder = 0;
+    viewerFrame.appendChild(iframe);
+  }catch(e){ console.error(e); viewerInfo.textContent = 'ভিউতে ত্রুটি'; }
+}
+function clearViewer(){
+  viewerFrame.innerHTML = '';
+  viewerInfo.textContent = '';
+  downloadBtn.style.display = 'none';
+  openNewBtn.style.display = 'none';
+  if(currentObjectUrl){ URL.revokeObjectURL(currentObjectUrl); currentObjectUrl = null; }
+}
+
+// on load, make sure DB exists
+openDb().then(()=>console.log('DB ready')).catch(e=>console.error(e));
+
+// start logged out
+setLoggedOut();
+
+</script></body>
+</html>

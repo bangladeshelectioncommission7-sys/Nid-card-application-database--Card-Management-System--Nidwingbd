@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birth & Death Registration Portal</title>
+<style>
+  body{font-family:Arial, sans-serif; margin:0; background:#f4f7f6; color:#0b2b2b;}
+  header{background:#0b6b3a; color:#fff; padding:15px 20px; text-align:center;}
+  header h1{margin:0; font-size:18px;}
+  .container{max-width:900px; margin:20px auto; padding:15px; background:#fff; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+  .search-bar{display:flex; gap:10px; margin-bottom:20px;}
+  .search-bar input{flex:1; padding:10px; font-size:14px; border-radius:6px; border:1px solid #ccc;}
+  .search-bar button{padding:10px 15px; background:#0b6b3a; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;}
+  .record{border:1px solid #e2e2e2; padding:15px; border-radius:6px; margin-bottom:15px; background:#f9f9f9;}
+  .field{margin-bottom:8px;}
+  .field label{font-weight:600;}
+  .status-row{margin-top:10px; display:flex; justify-content:space-between; align-items:center;}
+  .status-row .badge{padding:5px 10px; border-radius:999px; font-weight:700; color:#fff;}
+  .badge-pending{background:#f0ad4e;}
+  .badge-active{background:#5cb85c;}
+  .badge-cancelled{background:#d9534f;}
+  .controls{margin-top:12px;}
+  .controls button{padding:6px 10px; margin-right:6px; border:none; border-radius:5px; cursor:pointer; font-weight:600;}
+  .btn-approve{background:#5cb85c; color:#fff;}
+  .btn-cancel{background:#d9534f; color:#fff;}
+  .btn-pdf{background:#0275d8; color:#fff;}
+  .red-box{background:#ffecec; border:1px solid #d9534f; color:#d9534f; padding:10px; margin-top:10px; border-radius:5px; font-weight:700;}
+  .modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:1000;}
+  .modal{background:#fff; padding:20px; border-radius:6px; max-width:500px; width:95%;}
+  .modal button{margin-top:12px; padding:6px 12px; border-radius:5px; cursor:pointer; border:none; background:#0b6b3a; color:#fff;}
+  footer{text-align:center; margin:20px; font-size:13px; color:#555;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Birth & Death Registration Portal</h1>
+</header>
+
+<div class="container">
+  <div class="search-bar">
+    <input type="text" id="brnInput" placeholder="Enter Birth Registration Number">
+    <button id="searchBtn">Search</button>
+  </div>
+
+  <div id="recordArea"></div>
+</div>
+
+<div id="modalBackdrop" class="modal-backdrop">
+  <div class="modal" id="modalContent">
+    <div id="modalText"></div>
+    <button id="modalClose">Close</button>
+  </div>
+</div>
+
+<footer>
+© 2025 – Developed and maintained by Office of the Registrar General, Birth and Death Registration.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const records = {
+  "19791591608102371": {
+    brn:"19791591608102371",
+    dob:"15 October 1979",
+    regDate:"10 November 2014",
+    regOffice:"WARD-08",
+    issuanceDate:"10 November 2014",
+    name:"Mohammed Arman",
+    place:"Chittagong, Bangladesh",
+    mname:"Nur Begum",
+    mnational:"Bangladeshi",
+    fname:"Zakir Ahmed",
+    fnational:"Bangladeshi",
+    sex:"Male",
+    status:"PENDING",
+    history:[]
+  },
+  "19900007842274129": {
+    brn:"19900007842274129",
+    dob:"06/03/1990",
+    regDate:"24/11/2023",
+    regOffice:"Bangladesh Consulate General, Dubai",
+    issuanceDate:"11/12/2023",
+    name:"Farhad Mohammed Osman",
+    place:"Chattogram, Bangladesh",
+    mname:"Rahima Begum",
+    mnational:"Bangladeshi",
+    fname:"Mohammed Osman",
+    fnational:"Bangladeshi",
+    sex:"Male",
+    permanentAddress:"Khaikhain Poraikora, Poraikora, Anowara, Chattogram",
+    status:"PENDING",
+    history:[]
+  }
+};
+
+const brnInput = document.getElementById('brnInput');
+const searchBtn = document.getElementById('searchBtn');
+const recordArea = document.getElementById('recordArea');
+const modalBackdrop = document.getElementById('modalBackdrop');
+const modalText = document.getElementById('modalText');
+const modalClose = document.getElementById('modalClose');
+
+searchBtn.addEventListener('click', ()=>showRecord(brnInput.value.trim()));
+brnInput.addEventListener('keydown', (e)=>{if(e.key==='Enter') showRecord(brnInput.value.trim());});
+modalClose.addEventListener('click', ()=>modalBackdrop.style.display='none');
+
+function showRecord(brn){
+  const rec = records[brn];
+  if(!rec){alert("Record not found"); recordArea.innerHTML=""; return;}
+
+  let badgeClass = rec.status==="PENDING"?"badge-pending":rec.status==="ACTIVE"?"badge-active":"badge-cancelled";
+  let statusText = rec.status==="PENDING"?"Pending":rec.status==="ACTIVE"?"Approved":"Cancelled";
+
+  recordArea.innerHTML = `
+  <div class="record">
+    <div class="field"><label>Birth Registration Number:</label> ${rec.brn}</div>
+    <div class="field"><label>Name:</label> ${rec.name}</div>
+    <div class="field"><label>Date of Birth:</label> ${rec.dob}</div>
+    <div class="field"><label>Place of Birth:</label> ${rec.place}</div>
+    <div class="field"><label>Sex:</label> ${rec.sex}</div>
+    <div class="field"><label>Father:</label> ${rec.fname} (${rec.fnational})</div>
+    <div class="field"><label>Mother:</label> ${rec.mname} (${rec.mnational})</div>
+    ${rec.permanentAddress?`<div class="field"><label>Permanent Address:</label> ${rec.permanentAddress}</div>`:''}
+    <div class="status-row">
+      <div>Status: <span class="badge ${badgeClass}">${statusText}</span></div>
+    </div>
+    <div class="controls">
+      <button class="btn-approve" onclick="approve('${brn}')">Approve</button>
+      <button class="btn-cancel" onclick="cancel('${brn}')">Cancel</button>
+      <button class="btn-pdf" onclick="downloadReport('${brn}')">Download Report</button>
+    </div>
+    <div id="redBox-${brn}"></div>
+  </div>
+  `;
+}
+
+function approve(brn){
+  const rec = records[brn];
+  const redBox = document.getElementById(`redBox-${brn}`);
+  redBox.innerHTML = `<div class="red-box">
+  Sorry, you recently used IP, so you cannot approve without Access Reader. Please purchase Access Reader for 650 BDT.
+  </div>`;
+  rec.history.unshift({action:"Attempted Approval (Blocked by IP/Access Reader)", time:new Date().toLocaleString()});
+}
+
+function cancel(brn){
+  const rec = records[brn];
+  rec.status="CANCELLED";
+  rec.history.unshift({action:"Hold Application Cancelled", time:new Date().toLocaleString()});
+  showRecord(brn);
+}
+
+function downloadReport(brn){
+  const { jsPDF } = window.jspdf;
+  const rec = records[brn];
+  const doc = new jsPDF({unit:'pt', format:'a4'});
+  let y=50;
+  doc.setFontSize(16); doc.setFont(undefined,'bold'); doc.text("Birth Registration Report",50,y); y+=25;
+  doc.setFontSize(12); doc.setFont(undefined,'normal');
+  doc.text(`Birth Registration Number: ${rec.brn}`,50,y); y+=18;
+  doc.text(`Name: ${rec.name}`,50,y); y+=18;
+  doc.text(`Date of Birth: ${rec.dob}`,50,y); y+=18;
+  doc.text(`Place of Birth: ${rec.place}`,50,y); y+=18;
+  doc.text(`Sex: ${rec.sex}`,50,y); y+=18;
+  doc.text(`Father: ${rec.fname} (${rec.fnational})`,50,y); y+=18;
+  doc.text(`Mother: ${rec.mname} (${rec.mnational})`,50,y); y+=18;
+  if(rec.permanentAddress){doc.text(`Permanent Address: ${rec.permanentAddress}`,50,y); y+=18;}
+  doc.text(`Registration Office: ${rec.regOffice}`,50,y); y+=18;
+  doc.text(`Registration Date: ${rec.regDate}`,50,y); y+=18;
+  doc.text(`Issuance Date: ${rec.issuanceDate}`,50,y); y+=25;
+  doc.setFont(undefined,'bold'); doc.text("Action History:",50,y); y+=18; doc.setFont(undefined,'normal');
+  if(rec.history.length===0){doc.text("- No actions recorded -",50,y); y+=18;}
+  rec.history.forEach(h=>{
+    doc.text(`• ${h.action} - ${h.time}`,50,y); y+=18;
+  });
+  doc.save(`birth_report_${rec.brn}.pdf`);
+}
+</script>
+
+</body>
+</html>

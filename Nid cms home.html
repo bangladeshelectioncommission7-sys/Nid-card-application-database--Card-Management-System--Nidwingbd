@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Portal - Search & Results (Replica)</title>
+  <style>
+    /* Reset + base */
+    *{box-sizing:border-box}
+    body{font-family: 'Segoe UI', Roboto, Arial, sans-serif; background:#f6f7f8;margin:0;color:#222}
+    .container{max-width:1200px;margin:22px auto;background:#fff;border:1px solid #e0e0e0;border-radius:4px;overflow:hidden}
+
+    /* Top search area */
+    .top{display:flex;padding:18px 20px;gap:18px;align-items:flex-start}
+    .filters{flex:1;border-right:1px solid #e6e6e6;padding-right:20px}
+    .fields-panel{width:260px}
+
+    .filters h3{margin:0 0 12px 0;font-size:16px;color:#0b3a6e}
+    .filter-row{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+    .check{width:22px;height:22px;border:1px solid #c9c9c9;border-radius:3px;background:#fff;display:inline-block}
+    label.field-label{width:120px;font-size:14px;color:#333}
+    select, input[type="text"]{padding:8px 10px;border:1px solid #cfcfcf;border-radius:4px;min-width:160px}
+    select.small{width:70px}
+    .search-btn{display:inline-block;margin-top:6px;padding:8px 16px;border:1px solid #8b8b8b;background:#eee;border-radius:3px;cursor:pointer}
+
+    /* Fields panel mimic */
+    .panel{background:#f3f5f6;border:1px solid #ddd;padding:10px;border-radius:3px;height:220px;overflow:auto}
+    .panel h4{margin:4px 0 8px 0;font-size:14px}
+    .panel p{margin:6px 0;color:#666}
+
+    /* Results table */
+    .table-wrap{padding:6px 12px 22px; display:none;} /* শুরুতে লুকানো */
+    table{width:100%;border-collapse:collapse;background:#fff}
+    thead th{background:#f7f7f7;padding:14px 10px;text-align:left;border-bottom:1px solid #e6e6e6;font-weight:700;color:#222}
+    tbody td{padding:14px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+    tbody tr:nth-child(odd){background:#fff}
+    .col-id{width:16%}
+    .col-name{width:14%}
+    .col-nid{width:12%}
+    .col-date{width:12%}
+    .col-status{width:12%}
+    .muted{color:#777}
+
+    /* Status chips */
+    .chip{display:inline-block;padding:6px 10px;border-radius:14px;font-size:13px;border:1px solid #d0d0d0;background:#fff}
+    .chip.rejected{background:#fff2f2;border-color:#ef9a9a;color:#a94442}
+    .chip.completed{background:#f2fff6;border-color:#9fe6b8;color:#2f7f3a}
+
+    /* Footer / pagination */
+    .footer{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#fafafa;border-top:1px solid #eee}
+    .page-btn{padding:6px 10px;border-radius:4px;border:1px solid #cfcfcf;background:#fff;min-width:38px}
+    .page-btn.active{background:#0b63b6;color:#fff;border-color:#0b63b6}
+
+    /* small screens */
+    @media (max-width:900px){.top{flex-direction:column}.fields-panel{width:100%}.filters{border-right:none;padding-right:0}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top: Filters and fields panel -->
+    <div class="top">
+      <div class="filters">
+        <h3>Search Application</h3>
+
+        <div class="filter-row">
+          <td><input type="checkbox" id="nidCheck" /></td>
+          <label class="field-label">NID</label>
+          <select class="small">
+            <option>IS</option>
+            <option>EQ</option>
+          </select>
+          <input type="text" id="nidInput" value="1913230536" />
+        </div>
+
+        <div class="filter-row">
+          <td><input type="checkbox" /></td>
+          <label class="field-label">Registration ID</label>
+          <select class="small">
+            <option>IS</option>
+          </select>
+          <input type="text" placeholder="" />
+        </div>
+
+        <div class="filter-row">
+          <td><input type="checkbox" /></td>
+          <label class="field-label">Issue type</label>
+          <select class="small">
+            <option>IS</option>
+          </select>
+          <input type="text" placeholder="" />
+        </div>
+
+        <div class="filter-row">
+          <td><input type="checkbox" /></td>
+          <label class="field-label">Application Status</label>
+          <select class="small">
+            <option>IS</option>
+          </select>
+          <input type="text" placeholder="" style="min-width:320px" />
+        </div>
+
+        <div class="filter-row">
+          <td><input type="checkbox" /></td>
+          <label class="field-label">Category</label>
+          <select class="small">
+            <option>IS</option>
+          </select>
+          <select>
+            <option></option>
+            <option>Gha</option>
+          </select>
+        </div>
+
+        <button class="search-btn" id="searchBtn">Search</button>
+      </div>
+
+      <div class="fields-panel">
+        <div class="panel">
+          <h4>Fields</h4>
+          <p>Search Fields</p>
+          <p style="color:#999;font-size:13px">Click on fields to add:</p>
+          <p>Agent ID</p>
+          <p>Application Date</p>
+          <p>Application Status</p>
+          <p>Category</p>
+          <p>District</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results table -->
+    <div class="table-wrap" id="resultTable">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px"><input type="checkbox" /></th>
+            <th class="col-id">ID</th>
+            <th class="col-name">Name</th>
+            <th class="col-nid">NID</th>
+            <th class="col-date">Applied<br/>Date</th>
+            <th class="col-status">Current<br/>Status</th>
+            <th>Category</th>
+            <th>Issue Type</th>
+            <th>Source</th>
+            <th style="width:60px">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td class="muted">NIDCA5000040923</td>
+            <td>Mohammad  Jamal</td>
+            <td>1913230536</td>
+            <td>12/09/2025</td>
+            <td><span class="chip completed">N/A</span></td>
+            <td>Gha</td>
+            <td>Modified</td>
+            <td class="muted">ONLINE</td>
+            <td style="text-align:center">👁</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="footer">
+        <div>
+          Show <select style="display:inline-block;padding:4px 6px;margin:0 6px;border:1px solid #d0d0d0;border-radius:3px"><option>10</option><option>25</option></select> records
+        </div>
+        <div class="muted">Showing 1 to 2 of 2 records</div>
+        <div>
+          <button class="page-btn">Previous</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Table hide/show system
+    document.getElementById('searchBtn').addEventListener('click', function() {
+      const nidChecked = document.getElementById('nidCheck').checked;
+      const nidValue = document.getElementById('nidInput').value.trim();
+      const table = document.getElementById('resultTable');
+
+      if (nidChecked && nidValue !== '') {
+        table.style.display = 'block'; // টেবিল দেখাবে
+      } else {
+        table.style.display = 'none'; // লুকানো থাকবে
+        alert('অনুগ্রহ করে NID নাম্বার দিন এবং টিক চিহ্ন দিন।');
+      }
+    });
+  </script>
+</body>
+</html>

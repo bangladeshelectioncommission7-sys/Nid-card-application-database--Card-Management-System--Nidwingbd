@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<title>জন্ম ও মৃত্যু নিবন্ধন বাতিল পোর্টাল</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+    body {
+        font-family: SolaimanLipi, Arial, sans-serif;
+        background: #f0f6fb;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        background: #006a4e;
+        color: white;
+        padding: 15px;
+        text-align: center;
+        font-size: 22px;
+    }
+    nav {
+        text-align: right;
+        background: #004d38;
+        padding: 10px;
+    }
+    nav a {
+        color: white;
+        margin: 0 10px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .container {
+        width: 90%;
+        margin: 20px auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
+    }
+    h2 {
+        text-align: center;
+        color: #004d38;
+    }
+    label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+    input, button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    button {
+        background: #006a4e;
+        color: white;
+        border: none;
+        cursor: pointer;
+        margin-top: 15px;
+    }
+    button:hover {
+        background: #004d38;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    table, th, td {
+        border: 1px solid #666;
+    }
+    th, td {
+        padding: 8px;
+        text-align: left;
+    }
+    .hold {
+        color: red;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<header>জন্ম ও মৃত্যু নিবন্ধন বাতিল পোর্টাল</header>
+<nav>
+    <a href="#">লগইন</a>
+    <a href="#">লগআউট</a>
+</nav>
+
+<div class="container">
+    <h2>জন্ম নিবন্ধন সার্চ করুন</h2>
+    <label>জন্ম নিবন্ধন নাম্বার লিখুন:</label>
+    <input type="text" id="brnInput" placeholder="নিবন্ধন নাম্বার দিন: ">
+    <button onclick="searchBRN()">সার্চ করুন</button>
+
+    <div id="resultArea"></div>
+</div>
+
+<script>
+    // ডাটাবেস
+    const demoData = {
+        "20010695116388330": {
+            name: "MOMOTA AKTER",
+            dob: "2001-05-05",
+            father: "AHAD MIA",
+            mother: "RAHENA",
+            status: "Submitting successful "
+        }
+    };
+
+    function searchBRN() {
+        const brn = document.getElementById("brnInput").value.trim();
+        const resultDiv = document.getElementById("resultArea");
+
+        if (demoData[brn]) {
+            const d = demoData[brn];
+            resultDiv.innerHTML = `
+                <table>
+                    <tr><th>REGISTRATION DATE</th><td>${d.regDate}</td></tr>
+                    <tr><th>REGISTRATION OFFICE</th><td>${d.office}</td></tr>
+                    <tr><th>ISSUANCE DATE</th><td>${d.issueDate}</td></tr>
+                    <tr><th>DATE OF BIRTH</th><td>${d.dob}</td></tr>
+                    <tr><th>BIRTH REGISTRATION NUMBER</th><td>${d.brn}</td></tr>
+                    <tr><th>SEX</th><td>${d.sex}</td></tr>
+                    <tr><th>REGISTERED PERSON NAME</th><td>${d.name} (${d.enName})</td></tr>
+                    <tr><th>PLACE OF BIRTH</th><td>${d.place}</td></tr>
+                    <tr><th>MOTHER'S NAME</th><td>${d.mother} (${d.motherEn})</td></tr>
+                    <tr><th>MOTHER'S NATIONALITY</th><td>${d.motherNationality} (${d.motherNationalityEn})</td></tr>
+                    <tr><th>FATHER'S NAME</th><td>${d.father} (${d.fatherEn})</td></tr>
+                    <tr><th>স্ট্যাটাস</th><td class="${d.status === 'Hold' ? 'hold' : ''}">${d.status}</td></tr>
+                </table>
+                <button onclick="downloadReport('${d.status}')">রিপোর্ট ভিউ</button>
+            `;
+        } else {
+            resultDiv.innerHTML = `<p style="color:red;">❌ কোন তথ্য পাওয়া যায়নি</p>`;
+        }
+    }
+
+    function downloadReport(status) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(14);
+
+        if (status === "Hold") {
+            doc.text("আপনার নিবন্ধন এর কাজ বর্তমানে স্থগিত আছে।", 20, 30);
+        } else {
+            doc.text("আপনার নিবন্ধন সক্রিয় রয়েছে।", 20, 30);
+        }
+
+        doc.save("report.pdf");
+    }
+</script>
+
+</body>
+</html>

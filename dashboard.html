@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>বাংলাদেশ নির্বাচন কমিশন - ড্যাশবোর্ড</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f9;
+    }
+    .header {
+      background: #0b5ed7;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .container {
+      display: flex;
+    }
+    .sidebar {
+      width: 220px;
+      background: #fff;
+      border-right: 1px solid #ddd;
+      min-height: 100vh;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .sidebar ul li {
+      border-bottom: 1px solid #eee;
+    }
+    .sidebar ul li a {
+      display: block;
+      padding: 12px;
+      text-decoration: none;
+      color: #000;
+    }
+    .sidebar ul li a:hover {
+      background: #f0f0f0;
+    }
+    .content {
+      flex: 1;
+      padding: 20px;
+    }
+    .box {
+      background: #fff;
+      padding: 20px;
+      border: 1px solid #ddd;
+    }
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    .btn {
+      padding: 8px 16px;
+      background: #0b5ed7;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #0949a5;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">বাংলাদেশ নির্বাচন কমিশন</div>
+
+  <div class="container">
+    <div class="sidebar">
+      <ul>
+        <li><a href="#" onclick="showForm('nid')">এনআইডি সার্চ</a></li>
+        <li><a href="#" onclick="showForm('mobile')">মোবাইল সার্চ</a></li>
+        <li><a href="#" onclick="showForm('birth')">জন্ম নিবন্ধন সার্চ</a></li>
+        <li><a href="#" onclick="showForm('formno')">ফর্ম নাম্বার</a></li>
+        <li><a href="#" onclick="showForm('correction')">সংশোধন অনুমোদন</a></li>
+      </ul>
+    </div>
+
+    <div class="content">
+      <div class="box" id="formArea">
+        <h3>একটি অপশন নির্বাচন করুন</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const { jsPDF } = window.jspdf;
+
+    function downloadBlankPDF(filename) {
+      const doc = new jsPDF();
+      doc.save(filename);
+    }
+
+    function showForm(type) {
+      let html = "";
+      if (type === "nid") {
+        html = `
+          <h3>এনআইডি সার্চ</h3>
+          <input type="text" id="nidInput" class="form-control" placeholder="এনআইডি নাম্বার">
+          <select id="nidType" class="form-control">
+            <option value="ServerCopy">সার্ভার কপি</option>
+            <option value="SignCopy">সাইন কপি</option>
+          </select>
+          <button class="btn" onclick="searchNid()">ডাউনলোড</button>
+        `;
+      }
+      else if (type === "mobile") {
+        html = `
+          <h3>মোবাইল সার্চ</h3>
+          <input type="text" id="mobileInput" class="form-control" placeholder="মোবাইল নাম্বার">
+          <button class="btn" onclick="searchMobile()">ডাউনলোড</button>
+        `;
+      }
+      else if (type === "birth") {
+        html = `
+          <h3>জন্ম নিবন্ধন সার্চ</h3>
+          <input type="text" id="birthInput" class="form-control" placeholder="জন্ম নিবন্ধন নাম্বার">
+          <button class="btn" onclick="searchBirth()">ডাউনলোড</button>
+        `;
+      }
+      else if (type === "formno") {
+        html = `
+          <h3>ফর্ম নাম্বার</h3>
+          <input type="text" id="formInput" class="form-control" placeholder="ফর্ম নাম্বার">
+          <button class="btn" onclick="searchFormNo()">ডাউনলোড</button>
+        `;
+      }
+      else if (type === "correction") {
+        html = `
+          <h3>সংশোধন অনুমোদন</h3>
+          <input type="text" id="correctionInput" class="form-control" placeholder="এনআইডি নাম্বার">
+          <button class="btn" onclick="searchCorrection()">ডাউনলোড</button>
+        `;
+      }
+      document.getElementById("formArea").innerHTML = html;
+    }
+
+    function searchNid() {
+      let nid = document.getElementById("nidInput").value;
+      let type = document.getElementById("nidType").value;
+      downloadBlankPDF("NID_" + nid + "_" + type + ".pdf");
+    }
+
+    function searchMobile() {
+      let m = document.getElementById("mobileInput").value;
+      downloadBlankPDF("Mobile_" + m + ".pdf");
+    }
+
+    function searchBirth() {
+      let b = document.getElementById("birthInput").value;
+      downloadBlankPDF("Birth_" + b + ".pdf");
+    }
+
+    function searchFormNo() {
+      let f = document.getElementById("formInput").value;
+      downloadBlankPDF("Form_" + f + ".pdf");
+    }
+
+    function searchCorrection() {
+      let c = document.getElementById("correctionInput").value;
+      downloadBlankPDF("Correction_" + c + ".pdf");
+    }
+  </script>
+</body>
+</html>
